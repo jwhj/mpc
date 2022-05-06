@@ -2,8 +2,8 @@ from typing import List, Optional
 
 
 class Wire:
-    input: Optional['Gate']
-    outputs: List[Optional['Gate']]
+    input: Optional["Gate"]
+    outputs: List[Optional["Gate"]]
 
     def __init__(self) -> None:
         self.outputs = []

@@ -10,7 +10,7 @@ class SenderThread(Sender):
         self.id = id
 
     def send(self, id, msg):
-        assert id in queues, f'agent with id {id} not found'
+        assert id in queues, f"agent with id {id} not found"
         queues[id].put((self.id, msg))
 
 

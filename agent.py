@@ -1,5 +1,5 @@
 from typing import Any
-from .mailbox import Sender, Receiver
+from comm import Sender, Receiver
 
 
 class Agent:

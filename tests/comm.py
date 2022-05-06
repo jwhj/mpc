@@ -1,5 +1,5 @@
 import unittest
-from mailbox.multi_threading import SenderThread, ReceiverThread
+from comm.multi_threading import SenderThread, ReceiverThread
 
 
 class MailboxTest(unittest.TestCase):
@@ -26,5 +26,5 @@ class MailboxTest(unittest.TestCase):
         assert sender_id == 0 and msg == 2
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

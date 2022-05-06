@@ -3,20 +3,24 @@ import random
 from concurrent.futures import ThreadPoolExecutor
 
 from agent import Agent
-from oblivious_transfer import OT_Alice, OT_Bob
+from oblivious_transfer import ObliviousTransferProtocol
 from comm.multi_threading import SenderThread, ReceiverThread
 
 
 class OTTest(unittest.TestCase):
     def test_1(self):
 
+        protocol = ObliviousTransferProtocol()
+        protocol.alice_id = 0
+        protocol.bob_id = 1
+
         Alice = Agent()
-        Alice.id = 0
+        Alice.id = protocol.alice_id
         Alice.sender = SenderThread(Alice.id)
         Alice.receiver = ReceiverThread(Alice.id)
 
         Bob = Agent()
-        Bob.id = 1
+        Bob.id = protocol.bob_id
         Bob.sender = SenderThread(Bob.id)
         Bob.receiver = ReceiverThread(Bob.id)
 
@@ -25,8 +29,8 @@ class OTTest(unittest.TestCase):
             index = random.randint(0, 1)
 
             executor = ThreadPoolExecutor(max_workers=2)
-            a = executor.submit(OT_Alice, Alice, Bob.id, messages)
-            b = executor.submit(OT_Bob, Bob, Alice.id, index)
+            a = executor.submit(protocol.alice, Alice, messages)
+            b = executor.submit(protocol.bob, Bob, index)
             result = b.result()
             assert result == messages[index]
 

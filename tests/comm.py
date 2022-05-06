@@ -26,5 +26,5 @@ class MailboxTest(unittest.TestCase):
         assert sender_id == 0 and msg == 2
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     unittest.main()

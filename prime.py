@@ -18,6 +18,8 @@ def gen_prime(n: int):
     while 1:
         p = random.randint(n // 2, n)
         p |= 1
+        if p % 3 != 2:
+            continue
         if sympy.isprime(p) and sympy.isprime(2 * p + 1):
             return p, 2 * p + 1
 

@@ -3,7 +3,7 @@ import hashlib
 
 from typing import List, Any
 from agent import Agent
-from prime import pwr
+from prime import pwr, gen_g0
 
 # Bellare-Micali Construction
 # https://crypto.stanford.edu/pbc/notes/crypto/ot.html
@@ -18,14 +18,14 @@ def H(x):
 
 
 class ObliviousTransferProtocol:
-    P = 998244353
-    g0 = 3
+    P: int
+    g0: int
     alice_id: Any
     bob_id: Any
 
-    def __init__(self) -> None:
+    def __init__(self, n=1e50) -> None:
         # TODO:
-        pass
+        self.g0, self.P = gen_g0(n)
 
     def alice(self, agent: Agent, messages: List[int]):
         assert len(messages) == 2

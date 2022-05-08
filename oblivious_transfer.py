@@ -3,21 +3,10 @@ import hashlib
 
 from typing import List, Any
 from agent import Agent
+from prime import pwr
 
 # Bellare-Micali Construction
 # https://crypto.stanford.edu/pbc/notes/crypto/ot.html
-
-
-def pwr(x, k, P):
-    # compute x^k mod P
-    # kuai su mi
-    ans = 1
-    while k:
-        if k & 1:
-            ans = (ans * x) % P
-        x = (x * x) % P
-        k >>= 1
-    return ans
 
 
 def H(x):

@@ -68,15 +68,12 @@ class Circuit:
         assert len(self.inputs) == len(input_bits)
         n = len(self.gates)
         m = len(self.wires)
-        edges: List[List] = [[] for i in range(n)]
         in_deg: List[int] = [0] * n
         wire_ret: List[int] = [-1] * m
         for wire in self.wires:
-            if wire.input is not None:
-                for out_gate in wire.outputs:
-                    if out_gate is not None:
-                        edges[wire.input.index].append(out_gate.index)
-                        in_deg[out_gate.index] += 1
+            for out_gate in wire.outputs:
+                if out_gate is not None:
+                    in_deg[out_gate.index] += 1
         q = queue.Queue()
         for i in range(len(input_bits)):
             wire_ret[self.inputs[i].index] = input_bits[i]

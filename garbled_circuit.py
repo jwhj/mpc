@@ -121,24 +121,22 @@ class GarbledCircuitProtocol:
         inputs_labels_B = []
         for i in range(self.n_Bob_bits):
             wire = self.circuit.inputs[self.n_Alice_bits + i]
-            inputs_labels_B.append(self.OT.bob(agent, input_bits[i]))
+            inputs_labels_B.append(int2str(self.OT.bob(agent, input_bits[i])))
 
         inputs_labels = inputs_labels_A + inputs_labels_B
         assert len(inputs_labels) == self.n_Alice_bits + self.n_Bob_bits
 
         n = len(self.circuit.gates)
         m = len(self.circuit.wires)
-        edges: List[List] = [[] for i in range(n)]
         in_deg: List[int] = [0] * n
         wire_ret: List[str] = [''] * m
         for wire in self.circuit.wires:
-            if wire.input is not None:
-                for out_gate in wire.outputs:
-                    if out_gate is not None:
-                        edges[wire.input.index].append(out_gate.index)
-                        in_deg[out_gate.index] += 1
+            for out_gate in wire.outputs:
+                if out_gate is not None:
+                    in_deg[out_gate.index] += 1
         q = queue.Queue()
         for i in range(len(self.circuit.inputs)):
+            # print('hhhhhh', inputs_labels[i])
             wire_ret[self.circuit.inputs[i].index] = inputs_labels[i]
             q.put(self.circuit.inputs[i])
 
@@ -151,6 +149,7 @@ class GarbledCircuitProtocol:
                         assert len(out_gate.inputs) == 2
                         w_a, w_b = out_gate.inputs
                         w_c = out_gate.output
+                        # print('wtf', wire_ret[w_b.index], wire_ret[w_b.index])
                         k_a, p_a = wire_ret[w_a.index][:-1], wire_ret[w_a.index][-1]
                         k_b, p_b = wire_ret[w_b.index][:-1], wire_ret[w_b.index][-1]
 
@@ -164,18 +163,21 @@ class GarbledCircuitProtocol:
                         )
                         q.put(out_gate.output)
 
+        # for output_wire in self.circuit.outputs:
+        #     print('index=', output_wire.index)
         output_bits = [
-            H(
-                wire_ret[output_wire.index][:-1]
-                + 'out'
-                + int2str(output_wire.input.index)
-            )[-1]
-            ^ str2int(
-                garbled_tables_for_outputs[output_wire.index][
-                    wire_ret[output_wire.index][-1]
-                ]
+            (
+                H(
+                    wire_ret[output_wire.index][:-1]
+                    + 'out'
+                    + int2str(output_wire.input.index)
+                )
+                % 2
             )
-            for output_wire in self.circuit.outputs
+            ^ str2int(
+                garbled_tables_for_outputs[i][str2int(wire_ret[output_wire.index][-1])]
+            )
+            for i, output_wire in enumerate(self.circuit.outputs)
         ]
         agent.sender.send(self.alice_id, output_bits)
         return output_bits

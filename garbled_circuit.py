@@ -142,7 +142,7 @@ class GarbledCircuitProtocol:
             wire_ret[self.circuit.inputs[i].index] = inputs_labels[i]
             q.put(self.circuit.inputs[i])
 
-        while q.not_empty():
+        while not q.empty():
             wire = q.get()
             for out_gate in wire.outputs:
                 if out_gate is not None:

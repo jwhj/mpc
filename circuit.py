@@ -70,7 +70,7 @@ class Circuit:
             wire_ret[self.inputs[i].index] = input_bits[i]
             q.put(self.inputs[i])
 
-        while q.not_empty():
+        while not q.empty():
             wire = q.get()
             for out_gate in wire.outputs:
                 if out_gate is not None:

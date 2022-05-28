@@ -68,7 +68,7 @@ class GarbledCircuitProtocol:
                 )
 
                 e = int2str(
-                    str2int(H(k_a + k_b + int2str(gate.index)))
+                    H(k_a + k_b + int2str(gate.index))
                     ^ str2int(wire_labels[w_c.index][gate.evaluate([v_a, v_b])])
                 )
                 table_e[str2int(p_a + p_b)] = e
@@ -84,7 +84,7 @@ class GarbledCircuitProtocol:
                 )
                 assert output_wire.input is not None
                 gate = output_wire.input
-                e = int2str(str2int(H(k_v + 'out' + int2str(gate.index))[-1]) ^ v)
+                e = int2str((H(k_v + 'out' + int2str(gate.index)) % 2) ^ v)
                 table_e[v] = e
             garbled_tables_for_outputs.append(table_e)
 
@@ -155,7 +155,7 @@ class GarbledCircuitProtocol:
                         k_b, p_b = wire_ret[w_b.index][:-1], wire_ret[w_b.index][-1]
 
                         wire_ret[out_gate.output.index] = int2str(
-                            str2int(H(k_a + k_b + int2str(out_gate.index)))
+                            H(k_a + k_b + int2str(out_gate.index))
                             ^ str2int(
                                 garbled_tables_for_gates[out_gate.index][
                                     str2int(p_a + p_b)
@@ -165,13 +165,11 @@ class GarbledCircuitProtocol:
                         q.put(out_gate.output)
 
         output_bits = [
-            str2int(
-                H(
-                    wire_ret[output_wire.index][:-1]
-                    + 'out'
-                    + int2str(output_wire.input.index)
-                )[-1]
-            )
+            H(
+                wire_ret[output_wire.index][:-1]
+                + 'out'
+                + int2str(output_wire.input.index)
+            )[-1]
             ^ str2int(
                 garbled_tables_for_outputs[output_wire.index][
                     wire_ret[output_wire.index][-1]

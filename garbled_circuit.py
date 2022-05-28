@@ -85,7 +85,7 @@ class GarbledCircuitProtocol:
                 assert output_wire.input is not None
                 gate = output_wire.input
                 e = int2str((H(k_v + 'out' + int2str(gate.index)) % 2) ^ v)
-                table_e[v] = e
+                table_e[p_v] = e
             garbled_tables_for_outputs.append(table_e)
 
         inputs_labels = []

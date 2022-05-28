@@ -50,6 +50,19 @@ class Circuit:
         self.inputs = []
         self.outputs = []
 
+    def add_gate(self, g: Gate) -> int:
+        g.index = len(self.gates)
+        self.gates.append(g)
+        for w in g.inputs:
+            w.outputs.append(g)
+        g.output.input = g
+        return g.index
+
+    def add_wire(self, w: Wire) -> int:
+        w.index = len(self.wires)
+        self.wires.append(w)
+        return w.index
+
     def evaluate(self, input_bits: List[int]):
 
         assert len(self.inputs) == len(input_bits)

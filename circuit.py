@@ -69,6 +69,9 @@ class Circuit:
         self.wires.append(w)
         return w.index
 
+    def extend_wires(self, wires: List[Wire]) -> List[int]:
+        return [self.add_wire(w) for w in wires]
+
     def evaluate(self, input_bits: List[int]):
 
         assert len(self.inputs) == len(input_bits)

@@ -1,4 +1,3 @@
-import imp
 from typing import List, Optional
 import queue
 
@@ -9,6 +8,7 @@ class Wire:
     index: int
 
     def __init__(self) -> None:
+        self.input = None
         self.outputs = []
 
 
@@ -44,8 +44,22 @@ class Circuit:
 
     def __init__(self) -> None:
         self.gates = []
+        self.wires = []
         self.inputs = []
         self.outputs = []
+
+    def add_gate(self, g: Gate) -> int:
+        g.index = len(self.gates)
+        self.gates.append(g)
+        for w in g.inputs:
+            w.outputs.append(g)
+        g.output.input = g
+        return g.index
+
+    def add_wire(self, w: Wire) -> int:
+        w.index = len(self.wires)
+        self.wires.append(w)
+        return w.index
 
     def evaluate(self, input_bits: List[int]):
 
@@ -66,7 +80,7 @@ class Circuit:
             wire_ret[self.inputs[i].index] = input_bits[i]
             q.put(self.inputs[i])
 
-        while q.not_empty():
+        while not q.empty():
             wire = q.get()
             for out_gate in wire.outputs:
                 if out_gate is not None:

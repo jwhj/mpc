@@ -9,7 +9,9 @@ class Wire:
     index: int
 
     def __init__(self) -> None:
+        self.input = None
         self.outputs = []
+        self.index = -1
 
 
 class Gate:
@@ -28,6 +30,7 @@ class AndGate(Gate):
     def __init__(self, w_a, w_b, w_c) -> None:
         self.inputs = [w_a, w_b]
         self.output = w_c
+        self.index = -1
 
     def evaluate(self, inputs_bits: List[int]) -> int:
         assert len(inputs_bits) == 2
@@ -44,6 +47,7 @@ class Circuit:
 
     def __init__(self) -> None:
         self.gates = []
+        self.wires = []
         self.inputs = []
         self.outputs = []
 

@@ -1,5 +1,6 @@
 from typing import List, Optional
 import queue
+import sys
 
 
 class Wire:
@@ -20,8 +21,9 @@ class Gate:
 
     def __init__(self) -> None:
         self.inputs = []
+        self.index = None
 
-    def evaluate(self, inputs_bits: List[int]) -> int:
+    def evaluate(self, input_bits: List[int]) -> int:
         pass
 
 
@@ -31,9 +33,13 @@ class AndGate(Gate):
         self.output = w_c
         self.index = -1
 
-    def evaluate(self, inputs_bits: List[int]) -> int:
-        assert len(inputs_bits) == 2
-        return inputs_bits[0] & inputs_bits[1]
+    def evaluate(self, input_bits: List[int]) -> int:
+        print(
+            'AndGate is deprecated. Use circuit_utils.gates.And instead.',
+            file=sys.stderr,
+        )
+        assert len(input_bits) == 2
+        return input_bits[0] & input_bits[1]
 
 
 class Circuit:
@@ -62,6 +68,9 @@ class Circuit:
         w.index = len(self.wires)
         self.wires.append(w)
         return w.index
+
+    def extend_wires(self, wires: List[Wire]) -> List[int]:
+        return [self.add_wire(w) for w in wires]
 
     def evaluate(self, input_bits: List[int]):
 

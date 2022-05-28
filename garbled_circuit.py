@@ -42,9 +42,6 @@ class GarbledCircuitProtocol:
 
         n = len(self.circuit.gates)
         m = len(self.circuit.wires)
-        wire_ret: List[int] = [-1] * m
-        for i in range(self.n_Alice_bits):
-            wire_ret[self.circuit.inputs[i].index] = input_bits[i]
 
         wire_labels = []
         for i in range(m):
@@ -60,12 +57,16 @@ class GarbledCircuitProtocol:
             w_c = gate.output
             table_e = [''] * 4
             for v_a, v_b in [(0, 0), (0, 1), (1, 0), (1, 1)]:
-                k_a, p_a = wire_labels[w_a.index][v_a][:-1], str2int(
-                    wire_labels[w_a.index][v_a][-1]
+                k_a, p_a = (
+                    wire_labels[w_a.index][v_a][:-1],
+                    wire_labels[w_a.index][v_a][-1],
                 )
-                k_b, p_b = wire_labels[w_b.index][v_b][:-1], str2int(
-                    wire_labels[w_b.index][v_b][-1]
+
+                k_b, p_b = (
+                    wire_labels[w_b.index][v_b][:-1],
+                    wire_labels[w_b.index][v_b][-1],
                 )
+
                 e = int2str(
                     str2int(H(k_a + k_b + int2str(gate.index)))
                     ^ str2int(wire_labels[w_c.index][gate.evaluate([v_a, v_b])])

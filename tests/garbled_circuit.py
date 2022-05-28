@@ -42,7 +42,8 @@ class GCTest(unittest.TestCase):
         a = executor.submit(protocol.alice, Alice, [0])
         b = executor.submit(protocol.bob, Bob, [1])
         result = b.result()
-        assert result == 0
+        print(result)
+        assert result == [0]
 
 
 if __name__ == '__main__':

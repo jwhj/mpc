@@ -10,7 +10,10 @@ def gen_binary_string(len):
     return ret
 
 
-def int2str(x):
+def int2str(x, length=None):
+    ret = bin(x)[2:]
+    if length is not None:
+        return ''.join(['0'] * (length - len(ret)) + [ret])
     return bin(x)[2:]
 
 
@@ -121,11 +124,11 @@ class GarbledCircuitProtocol:
         inputs_labels_B = []
         for i in range(self.n_Bob_bits):
             wire = self.circuit.inputs[self.n_Alice_bits + i]
-            inputs_labels_B.append(int2str(self.OT.bob(agent, input_bits[i])))
+            inputs_labels_B.append(int2str(self.OT.bob(agent, input_bits[i]), 129))
 
         inputs_labels = inputs_labels_A + inputs_labels_B
         assert len(inputs_labels) == self.n_Alice_bits + self.n_Bob_bits
-
+        print(inputs_labels)
         n = len(self.circuit.gates)
         m = len(self.circuit.wires)
         in_deg: List[int] = [0] * n
@@ -153,15 +156,16 @@ class GarbledCircuitProtocol:
                         k_a, p_a = wire_ret[w_a.index][:-1], wire_ret[w_a.index][-1]
                         k_b, p_b = wire_ret[w_b.index][:-1], wire_ret[w_b.index][-1]
 
-                        wire_ret[out_gate.output.index] = int2str(
+                        wire_ret[w_c.index] = int2str(
                             H(k_a + k_b + int2str(out_gate.index))
                             ^ str2int(
                                 garbled_tables_for_gates[out_gate.index][
                                     str2int(p_a + p_b)
                                 ]
-                            )
+                            ),
+                            129,
                         )
-                        q.put(out_gate.output)
+                        q.put(w_c)
 
         # for output_wire in self.circuit.outputs:
         #     print('index=', output_wire.index)

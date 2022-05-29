@@ -5,14 +5,27 @@ from concurrent.futures import ThreadPoolExecutor
 from agent import Agent
 from circuit import AndGate, Circuit, Wire
 from circuit_utils import int2bits, bits2int
-from circuit_utils.modules import Add
+from circuit_utils.modules import Add, Subtract
 from oblivious_transfer import ObliviousTransferProtocol
 from garbled_circuit import GarbledCircuitProtocol
 from comm.multi_threading import SenderThread, ReceiverThread
 
 
 class GCTest(unittest.TestCase):
-    def test_1(self):
+    def setup_agents(self, protocol: GarbledCircuitProtocol):
+        Alice = Agent()
+        Alice.id = protocol.alice_id
+        Alice.sender = SenderThread(Alice.id)
+        Alice.receiver = ReceiverThread(Alice.id)
+
+        Bob = Agent()
+        Bob.id = protocol.bob_id
+        Bob.sender = SenderThread(Bob.id)
+        Bob.receiver = ReceiverThread(Bob.id)
+
+        return Alice, Bob
+
+    def _test_1(self):
 
         circuit = Circuit()
         w_a, w_b, w_c = Wire(), Wire(), Wire()
@@ -29,16 +42,7 @@ class GCTest(unittest.TestCase):
         circuit.outputs = [w_c]
 
         protocol = GarbledCircuitProtocol(circuit, 1, 1, 0, 1)
-
-        Alice = Agent()
-        Alice.id = protocol.alice_id
-        Alice.sender = SenderThread(Alice.id)
-        Alice.receiver = ReceiverThread(Alice.id)
-
-        Bob = Agent()
-        Bob.id = protocol.bob_id
-        Bob.sender = SenderThread(Bob.id)
-        Bob.receiver = ReceiverThread(Bob.id)
+        Alice, Bob = self.setup_agents(protocol)
 
         executor = ThreadPoolExecutor(max_workers=2)
         a = executor.submit(protocol.alice, Alice, [0])
@@ -47,7 +51,7 @@ class GCTest(unittest.TestCase):
         print(result)
         assert result == [0]
 
-    def test_add(self):
+    def _test_add(self):
         bit_length = 64
         circuit = Circuit()
         adder = Add(circuit, bit_length)
@@ -55,16 +59,7 @@ class GCTest(unittest.TestCase):
         circuit.outputs = adder.out
 
         protocol = GarbledCircuitProtocol(circuit, bit_length, bit_length, 0, 1)
-
-        Alice = Agent()
-        Alice.id = protocol.alice_id
-        Alice.sender = SenderThread(Alice.id)
-        Alice.receiver = ReceiverThread(Alice.id)
-
-        Bob = Agent()
-        Bob.id = protocol.bob_id
-        Bob.sender = SenderThread(Bob.id)
-        Bob.receiver = ReceiverThread(Bob.id)
+        Alice, Bob = self.setup_agents(protocol)
 
         executor = ThreadPoolExecutor(max_workers=2)
         for _ in range(10):
@@ -74,6 +69,27 @@ class GCTest(unittest.TestCase):
             b = executor.submit(protocol.bob, Bob, int2bits(y, bit_length))
             result = b.result()
             assert bits2int(result) == (x + y) % (1 << bit_length)
+
+    def test_billionaire(self):
+        bit_length = 64
+        circuit = Circuit()
+        one = Wire()
+        circuit.add_wire(one)
+        subtract = Subtract(circuit, bit_length, one)
+        circuit.inputs = [one] + subtract.in_0 + subtract.in_1
+        circuit.outputs = [subtract.out[-1]]
+
+        protocol = GarbledCircuitProtocol(circuit, bit_length + 1, bit_length, 0, 1)
+        Alice, Bob = self.setup_agents(protocol)
+
+        executor = ThreadPoolExecutor(max_workers=2)
+        for _ in range(10):
+            x = random.randint(0, (1 << (bit_length - 1)) - 1)
+            y = random.randint(0, (1 << (bit_length - 1)) - 1)
+            a = executor.submit(protocol.alice, Alice, [1] + int2bits(x, bit_length))
+            b = executor.submit(protocol.bob, Bob, int2bits(y, bit_length))
+            result = b.result()
+            assert bool(result[0]) == (x < y), f'\n{result}\n{x}\n{y}'
 
 
 if __name__ == '__main__':

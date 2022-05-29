@@ -1,6 +1,6 @@
 from typing import List
 from circuit import Circuit, Wire
-from .gates import And, Xor, Or
+from .gates import And, Xor, Or, Not
 
 
 class HalfAdder:
@@ -100,4 +100,42 @@ class Add:
             tmp = Wire()
             circuit.add_wire(tmp)
             FullAdder(circuit, in_0[i], in_1[i], carry, out[i], tmp)
+            carry = tmp
+
+
+class Negate:
+    def __init__(
+        self,
+        circuit: Circuit,
+        bit_length: int,
+        one: Wire,
+        in_0: List[Wire] = None,
+        out: List[Wire] = None,
+    ) -> None:
+        if in_0 is None:
+            in_0 = [Wire() for _ in range(bit_length)]
+            circuit.extend_wires(in_0)
+        else:
+            assert len(in_0) == bit_length
+        if out is None:
+            out = [Wire() for _ in range(bit_length)]
+            circuit.extend_wires(out)
+        else:
+            assert len(out) == bit_length
+        self.in_0 = in_0
+        self.out = out
+
+        neg_in = []
+        for w in in_0:
+            w1 = Wire()
+            circuit.add_wire(w1)
+            circuit.add_gate(Not(w, w1))
+            neg_in.append(w1)
+        carry = Wire()
+        circuit.add_wire(carry)
+        HalfAdder(circuit, neg_in[0], one, out[0], carry)
+        for i in range(1, bit_length):
+            tmp = Wire()
+            circuit.add_wire(tmp)
+            HalfAdder(circuit, neg_in[i], carry, out[i], tmp)
             carry = tmp

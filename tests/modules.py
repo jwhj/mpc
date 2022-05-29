@@ -1,8 +1,8 @@
 import random
 import unittest
-from circuit import Circuit
+from circuit import Circuit, Wire
 from circuit_utils import int2bits, bits2int
-from circuit_utils.modules import HalfAdder, FullAdder, Add
+from circuit_utils.modules import HalfAdder, FullAdder, Add, Negate
 
 
 class ModulesTest(unittest.TestCase):
@@ -42,6 +42,20 @@ class ModulesTest(unittest.TestCase):
             y_bits = int2bits(y, bit_length)
             result = circuit.evaluate(x_bits + y_bits)
             assert bits2int(result) == (x + y) % (1 << bit_length)
+
+    def test_negate(self):
+        bit_length = 128
+        circuit = Circuit()
+        one = Wire()
+        circuit.add_wire(one)
+        negate = Negate(circuit, bit_length, one)
+        circuit.inputs = [one] + negate.in_0
+        circuit.outputs = negate.out
+        for _ in range(10):
+            x = random.randint(0, (1 << bit_length) - 1)
+            x_bits = int2bits(x, bit_length)
+            result = circuit.evaluate([1] + x_bits)
+            assert (bits2int(result) + x) % (1 << bit_length) == 0
 
 
 if __name__ == '__main__':

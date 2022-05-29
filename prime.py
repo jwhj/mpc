@@ -16,7 +16,7 @@ def pwr(x, k, P):
 
 def gen_prime(n: int):
     while 1:
-        p = random.randint(n // 2, n)
+        p = random.randint(n, n * 2 - 1)
         p |= 1
         if p % 3 != 2:
             continue

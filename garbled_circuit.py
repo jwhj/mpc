@@ -35,7 +35,7 @@ class GarbledCircuitProtocol:
         self.circuit = circuit
         self.n_Alice_bits = n_Alice_bits
         self.n_Bob_bits = n_Bob_bits
-        self.OT = ObliviousTransferProtocol()
+        self.OT = ObliviousTransferProtocol(1 << (security_param + 1))
         self.alice_id, self.bob_id = alice_id, bob_id
         self.OT.alice_id, self.OT.bob_id = alice_id, bob_id
         self.security_param = security_param

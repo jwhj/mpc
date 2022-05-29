@@ -9,7 +9,7 @@ class Not(Gate):
         self.output = output
 
     def evaluate(self, input_bits: List[int]) -> int:
-        return ~input_bits[0]
+        return (~input_bits[0]) & 1
 
 
 class And(Gate):

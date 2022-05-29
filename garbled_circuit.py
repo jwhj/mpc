@@ -29,13 +29,16 @@ class GarbledCircuitProtocol:
     n_Bob_bits: int
     OT: ObliviousTransferProtocol
 
-    def __init__(self, circuit, n_Alice_bits, n_Bob_bits, alice_id, bob_id) -> None:
+    def __init__(
+        self, circuit, n_Alice_bits, n_Bob_bits, alice_id, bob_id, security_param=128
+    ) -> None:
         self.circuit = circuit
         self.n_Alice_bits = n_Alice_bits
         self.n_Bob_bits = n_Bob_bits
         self.OT = ObliviousTransferProtocol()
         self.alice_id, self.bob_id = alice_id, bob_id
         self.OT.alice_id, self.OT.bob_id = alice_id, bob_id
+        self.security_param = security_param
 
     def alice(
         self,
@@ -48,8 +51,8 @@ class GarbledCircuitProtocol:
 
         wire_labels = []
         for i in range(m):
-            k0, p0 = gen_binary_string(128), random.randint(0, 1)
-            k1, p1 = gen_binary_string(128), 1 - p0
+            k0, p0 = gen_binary_string(self.security_param), random.randint(0, 1)
+            k1, p1 = gen_binary_string(self.security_param), 1 - p0
             wire_labels.append([k0 + int2str(p0), k1 + int2str(p1)])
 
         garbled_tables_for_gates = []
@@ -124,11 +127,13 @@ class GarbledCircuitProtocol:
         inputs_labels_B = []
         for i in range(self.n_Bob_bits):
             wire = self.circuit.inputs[self.n_Alice_bits + i]
-            inputs_labels_B.append(int2str(self.OT.bob(agent, input_bits[i]), 129))
+            inputs_labels_B.append(
+                int2str(self.OT.bob(agent, input_bits[i]), self.security_param + 1)
+            )
 
         inputs_labels = inputs_labels_A + inputs_labels_B
         assert len(inputs_labels) == self.n_Alice_bits + self.n_Bob_bits
-        print(inputs_labels)
+        # print(inputs_labels)
         n = len(self.circuit.gates)
         m = len(self.circuit.wires)
         in_deg: List[int] = [0] * n
@@ -163,7 +168,7 @@ class GarbledCircuitProtocol:
                                     str2int(p_a + p_b)
                                 ]
                             ),
-                            129,
+                            self.security_param + 1,
                         )
                         q.put(w_c)
 

@@ -48,7 +48,7 @@ class GCTest(unittest.TestCase):
         a = executor.submit(protocol.alice, Alice, [0])
         b = executor.submit(protocol.bob, Bob, [1])
         result = b.result()
-        print(result)
+        # print(result)
         assert result == [0]
 
     def _test_add(self):

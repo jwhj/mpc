@@ -2,7 +2,7 @@ import random
 import unittest
 from circuit import Circuit
 from circuit_utils import int2bits, bits2int
-from circuit_utils.modules import HalfAdder, FullAdder, Adder
+from circuit_utils.modules import HalfAdder, FullAdder, Add
 
 
 class ModulesTest(unittest.TestCase):
@@ -32,7 +32,7 @@ class ModulesTest(unittest.TestCase):
     def test_adder(self):
         bit_length = 128
         circuit = Circuit()
-        adder = Adder(circuit, bit_length)
+        adder = Add(circuit, bit_length)
         circuit.inputs = adder.in_0 + adder.in_1
         circuit.outputs = adder.out
         for _ in range(10):

@@ -65,7 +65,7 @@ class FullAdder:
         circuit.add_gate(Or(w2, w3, self.carry))
 
 
-class Adder:
+class Add:
     def __init__(
         self,
         circuit: Circuit,

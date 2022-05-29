@@ -5,7 +5,7 @@ from concurrent.futures import ThreadPoolExecutor
 from agent import Agent
 from circuit import AndGate, Circuit, Wire
 from circuit_utils import int2bits, bits2int
-from circuit_utils.modules import Adder
+from circuit_utils.modules import Add
 from oblivious_transfer import ObliviousTransferProtocol
 from garbled_circuit import GarbledCircuitProtocol
 from comm.multi_threading import SenderThread, ReceiverThread
@@ -50,7 +50,7 @@ class GCTest(unittest.TestCase):
     def test_add(self):
         bit_length = 64
         circuit = Circuit()
-        adder = Adder(circuit, bit_length)
+        adder = Add(circuit, bit_length)
         circuit.inputs = adder.in_0 + adder.in_1
         circuit.outputs = adder.out
 

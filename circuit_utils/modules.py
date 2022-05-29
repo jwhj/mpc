@@ -139,3 +139,36 @@ class Negate:
             circuit.add_wire(tmp)
             HalfAdder(circuit, neg_in[i], carry, out[i], tmp)
             carry = tmp
+
+
+class Subtract:
+    def __init__(
+        self,
+        circuit: Circuit,
+        bit_length: int,
+        one: Wire,
+        in_0: List[Wire] = None,
+        in_1: List[Wire] = None,
+        out: List[Wire] = None,
+    ) -> None:
+        if in_0 is None:
+            in_0 = [Wire() for _ in range(bit_length)]
+            circuit.extend_wires(in_0)
+        else:
+            assert len(in_0) == bit_length
+        if in_1 is None:
+            in_1 = [Wire() for _ in range(bit_length)]
+            circuit.extend_wires(in_1)
+        else:
+            assert len(in_1) == bit_length
+        if out is None:
+            out = [Wire() for _ in range(bit_length)]
+            circuit.extend_wires(out)
+        else:
+            assert len(out) == bit_length
+        self.in_0 = in_0
+        self.in_1 = in_1
+        self.out = out
+
+        negate = Negate(circuit, bit_length, one, in_1)
+        Add(circuit, bit_length, in_0, negate.out, out)

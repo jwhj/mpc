@@ -11,7 +11,7 @@ class Wire:
     def __init__(self) -> None:
         self.input = None
         self.outputs = []
-        self.index = -1
+        self.index = None
 
 
 class Gate:

@@ -25,7 +25,7 @@ class GCTest(unittest.TestCase):
 
         return Alice, Bob
 
-    def _test_1(self):
+    def test_1(self):
 
         circuit = Circuit()
         w_a, w_b, w_c = Wire(), Wire(), Wire()
@@ -51,7 +51,7 @@ class GCTest(unittest.TestCase):
         # print(result)
         assert result == [0]
 
-    def _test_add(self):
+    def test_add(self):
         bit_length = 64
         circuit = Circuit()
         adder = Add(circuit, bit_length)

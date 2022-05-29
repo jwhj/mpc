@@ -1,5 +1,6 @@
 import unittest
 from circuit import Circuit, Wire, AndGate
+from circuit_utils.gates import Not
 
 
 class CircuitTest(unittest.TestCase):
@@ -21,6 +22,21 @@ class CircuitTest(unittest.TestCase):
                 for z in range(2):
                     u, v = circuit.evaluate([x, y, z])
                     assert u == (x & y) and v == (x & y & z)
+
+    def test_not(self):
+        circuit = Circuit()
+        w1 = Wire()
+        circuit.add_wire(w1)
+        w2 = Wire()
+        circuit.add_wire(w2)
+
+        circuit.add_gate(Not(w1, w2))
+        circuit.inputs = [w1]
+        circuit.outputs = [w2]
+
+        for x in range(2):
+            u = circuit.evaluate([x])
+            assert x + u[0] == 1
 
 
 if __name__ == '__main__':

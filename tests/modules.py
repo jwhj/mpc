@@ -1,6 +1,7 @@
 import random
 import unittest
 from circuit import Circuit
+from circuit_utils import int2bits, bits2int
 from circuit_utils.modules import HalfAdder, FullAdder, Adder
 
 
@@ -35,17 +36,12 @@ class ModulesTest(unittest.TestCase):
         circuit.inputs = adder.in_0 + adder.in_1
         circuit.outputs = adder.out
         for _ in range(10):
-            inputs = [0, 0]
-            input_bits = [[], []]
-            for i in range(2):
-                tmp = random.randint(0, (1 << bit_length) - 1)
-                inputs[i] = tmp
-                for j in range(bit_length):
-                    input_bits[i].append(tmp % 2)
-                    tmp >>= 1
-            outputs = circuit.evaluate(input_bits[0] + input_bits[1])
-            result = sum([x * (1 << i) for i, x in enumerate(outputs)])
-            assert result == ((inputs[0] + inputs[1]) & ((1 << bit_length) - 1))
+            x = random.randint(0, (1 << bit_length) - 1)
+            y = random.randint(0, (1 << bit_length) - 1)
+            x_bits = int2bits(x, bit_length)
+            y_bits = int2bits(y, bit_length)
+            result = circuit.evaluate(x_bits + y_bits)
+            assert bits2int(result) == (x + y) % (1 << bit_length)
 
 
 if __name__ == '__main__':

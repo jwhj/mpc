@@ -73,7 +73,7 @@ class GCTest(unittest.TestCase):
             result = b.result()
             assert bits2int(result) == (x + y) % (1 << bit_length)
 
-    def test_billionaire_1(self):
+    def test_billionaire(self):
         bit_length = 64
         circuit = Circuit()
         one = Wire()
@@ -90,25 +90,6 @@ class GCTest(unittest.TestCase):
             x = csprng.randint(0, (1 << (bit_length - 1)) - 1)
             y = csprng.randint(0, (1 << (bit_length - 1)) - 1)
             a = executor.submit(protocol.alice, Alice, [1] + int2bits(x, bit_length))
-            b = executor.submit(protocol.bob, Bob, int2bits(y, bit_length))
-            result = b.result()
-            assert bool(result[0]) == (x < y), f'\n{result}\n{x}\n{y}'
-
-    def test_billionaire_2(self):
-        bit_length = 64
-        with open('tests/demos/billionaire.py', 'r') as f:
-            code = f.read()
-        compiler = ASTCompiler()
-        circuit = compiler.compile(ast.parse(code))
-
-        protocol = GarbledCircuitProtocol(circuit, bit_length + 2, bit_length, 0, 1)
-        Alice, Bob = self.setup_agents(protocol)
-
-        executor = ThreadPoolExecutor(max_workers=2)
-        for _ in range(10):
-            x = random.randint(0, (1 << (bit_length - 1)) - 1)
-            y = random.randint(0, (1 << (bit_length - 1)) - 1)
-            a = executor.submit(protocol.alice, Alice, [0, 1] + int2bits(x, bit_length))
             b = executor.submit(protocol.bob, Bob, int2bits(y, bit_length))
             result = b.result()
             assert bool(result[0]) == (x < y), f'\n{result}\n{x}\n{y}'

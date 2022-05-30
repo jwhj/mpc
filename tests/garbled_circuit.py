@@ -1,6 +1,6 @@
 import unittest
-import random
 import ast
+import csprng
 from concurrent.futures import ThreadPoolExecutor
 
 from agent import Agent
@@ -65,8 +65,8 @@ class GCTest(unittest.TestCase):
 
         executor = ThreadPoolExecutor(max_workers=2)
         for _ in range(10):
-            x = random.randint(0, (1 << bit_length) - 1)
-            y = random.randint(0, (1 << bit_length) - 1)
+            x = csprng.randint(0, (1 << bit_length) - 1)
+            y = csprng.randint(0, (1 << bit_length) - 1)
             a = executor.submit(protocol.alice, Alice, int2bits(x, bit_length))
             b = executor.submit(protocol.bob, Bob, int2bits(y, bit_length))
             result = b.result()
@@ -86,8 +86,8 @@ class GCTest(unittest.TestCase):
 
         executor = ThreadPoolExecutor(max_workers=2)
         for _ in range(10):
-            x = random.randint(0, (1 << (bit_length - 1)) - 1)
-            y = random.randint(0, (1 << (bit_length - 1)) - 1)
+            x = csprng.randint(0, (1 << (bit_length - 1)) - 1)
+            y = csprng.randint(0, (1 << (bit_length - 1)) - 1)
             a = executor.submit(protocol.alice, Alice, [1] + int2bits(x, bit_length))
             b = executor.submit(protocol.bob, Bob, int2bits(y, bit_length))
             result = b.result()

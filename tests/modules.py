@@ -1,4 +1,4 @@
-import random
+import csprng
 import unittest
 from circuit import Circuit, Wire
 from circuit_utils import int2bits, bits2int
@@ -36,8 +36,8 @@ class ModulesTest(unittest.TestCase):
         circuit.inputs = adder.in_0 + adder.in_1
         circuit.outputs = adder.out
         for _ in range(10):
-            x = random.randint(0, (1 << bit_length) - 1)
-            y = random.randint(0, (1 << bit_length) - 1)
+            x = csprng.randint(0, (1 << bit_length) - 1)
+            y = csprng.randint(0, (1 << bit_length) - 1)
             x_bits = int2bits(x, bit_length)
             y_bits = int2bits(y, bit_length)
             result = circuit.evaluate(x_bits + y_bits)
@@ -52,7 +52,7 @@ class ModulesTest(unittest.TestCase):
         circuit.inputs = [one] + negate.in_0
         circuit.outputs = negate.out
         for _ in range(10):
-            x = random.randint(0, (1 << bit_length) - 1)
+            x = csprng.randint(0, (1 << bit_length) - 1)
             x_bits = int2bits(x, bit_length)
             result = circuit.evaluate([1] + x_bits)
             assert (bits2int(result) + x) % (1 << bit_length) == 0
@@ -66,8 +66,8 @@ class ModulesTest(unittest.TestCase):
         circuit.inputs = [one] + subtract.in_0 + subtract.in_1
         circuit.outputs = subtract.out
         for _ in range(10):
-            x = random.randint(0, (1 << bit_length) - 1)
-            y = random.randint(0, (1 << bit_length) - 1)
+            x = csprng.randint(0, (1 << bit_length) - 1)
+            y = csprng.randint(0, (1 << bit_length) - 1)
             x_bits = int2bits(x, bit_length)
             y_bits = int2bits(y, bit_length)
             result = circuit.evaluate([1] + x_bits + y_bits)

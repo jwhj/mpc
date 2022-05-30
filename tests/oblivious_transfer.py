@@ -1,5 +1,5 @@
 import unittest
-import random
+import csprng
 from concurrent.futures import ThreadPoolExecutor
 
 from agent import Agent
@@ -25,8 +25,8 @@ class OTTest(unittest.TestCase):
         Bob.receiver = ReceiverThread(Bob.id)
 
         for i in range(100):
-            messages = [random.randint(0, 10), random.randint(0, 10)]
-            index = random.randint(0, 1)
+            messages = [csprng.randint(0, 10), csprng.randint(0, 10)]
+            index = csprng.randint(0, 1)
 
             executor = ThreadPoolExecutor(max_workers=2)
             a = executor.submit(protocol.alice, Alice, messages)

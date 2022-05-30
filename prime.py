@@ -1,4 +1,4 @@
-import random
+import csprng
 import sympy
 
 
@@ -16,7 +16,7 @@ def pwr(x, k, P):
 
 def gen_prime(n: int):
     while 1:
-        p = random.randint(n, n * 2 - 1)
+        p = csprng.randint(n, n * 2 - 1)
         p |= 1
         if p % 3 != 2:
             continue
@@ -27,6 +27,6 @@ def gen_prime(n: int):
 def gen_g0(n: int):
     p, q = gen_prime(n)
     while 1:
-        g = random.randint(2, q - 2)
+        g = csprng.randint(2, q - 2)
         if pwr(g, 2, q) != 1 and pwr(g, p, q) != 1:
             return g, q

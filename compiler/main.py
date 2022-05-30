@@ -3,7 +3,7 @@ import sys
 import ast
 from circuit import Circuit, Wire
 from circuit_utils import int2bits, bits2int
-from circuit_utils.modules import Add, Subtract, Lt
+from circuit_utils.modules import Add, Subtract, Lt, ToBool, Select
 
 
 class ASTCompiler:
@@ -65,6 +65,21 @@ class ASTCompiler:
         else:
             assert False, f'line {stmt.op.lineno}: unsupported operation {stmt.op}'
 
+    def compile_if_expr(self, stmt: ast.IfExp) -> List[Wire]:
+        test = self.compile_expr(stmt.test)
+        to_bool = ToBool(self.circuit, len(test), test)
+        test = to_bool.out
+        body = self.compile_expr(stmt.body)
+        orelse = self.compile_expr(stmt.orelse)
+
+        assert len(body) == len(orelse)
+        bit_length = len(body)
+        result = []
+        for i in range(bit_length):
+            select = Select(self.circuit, orelse[i], body[i], test[0])
+            result.append(select.out)
+        return result
+
     def compile_expr(self, stmt):
         if isinstance(stmt, ast.Name):
             assert (
@@ -75,6 +90,8 @@ class ASTCompiler:
             return self.compile_constant(stmt)
         elif isinstance(stmt, ast.BinOp) or isinstance(stmt, ast.Compare):
             return self.compile_bin_op(stmt)
+        elif isinstance(stmt, ast.IfExp):
+            return self.compile_if_expr(stmt)
         else:
             assert False, f'line {stmt.lineno}: unsupported value {stmt}'
 

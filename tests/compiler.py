@@ -38,6 +38,25 @@ class CompilerTest(unittest.TestCase):
             )
             assert (bits2int(result) - x - y) % (1 << bit_length) == 0
 
+    def test_if_expr(self):
+        with open('tests/demos/if_expr.py', 'r') as f:
+            code = f.read()
+        compiler = ASTCompiler()
+        circuit = compiler.compile(ast.parse(code))
+        bit_length = compiler.default_bit_length
+
+        for _ in range(10):
+            x = random.randint(0, (1 << bit_length) - 1)
+            y = random.randint(0, (1 << bit_length) - 1)
+            c = random.randint(0, 1)
+            result = circuit.evaluate(
+                [0, 1] + int2bits(x, bit_length) + int2bits(y, bit_length) + [c]
+            )
+            if c == 0:
+                assert (bits2int(result) - x + y) % (1 << bit_length) == 0
+            else:
+                assert (bits2int(result) - x - y) % (1 << bit_length) == 0
+
     def test_billionaire(self):
         bit_length = 64
         with open('tests/demos/billionaire.py', 'r') as f:

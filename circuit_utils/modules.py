@@ -5,6 +5,44 @@ from circuit import Circuit, Wire
 from .gates import And, Xor, Or, Not
 
 
+class Select:
+    def __init__(
+        self,
+        circuit: Circuit,
+        in_0: Wire = None,
+        in_1: Wire = None,
+        index: Wire = None,
+        out: Wire = None,
+    ) -> None:
+        if in_0 is None:
+            in_0 = Wire()
+            circuit.add_wire(in_0)
+        self.in_0 = in_0
+        if in_1 is None:
+            in_1 = Wire()
+            circuit.add_wire(in_1)
+        self.in_1 = in_1
+        if index is None:
+            index = Wire()
+            circuit.add_wire(index)
+        self.index = index
+        if out is None:
+            out = Wire()
+            circuit.add_wire(out)
+        self.out = out
+
+        w1 = Wire()
+        circuit.add_wire(w1)
+        circuit.add_gate(Not(index, w1))
+        b1 = Wire()
+        circuit.add_wire(b1)
+        circuit.add_gate(And(in_0, w1, b1))
+        b2 = Wire()
+        circuit.add_wire(b2)
+        circuit.add_gate(And(in_1, index, b2))
+        circuit.add_gate(Or(b1, b2, self.out))
+
+
 class HalfAdder:
     def __init__(
         self,
@@ -209,3 +247,32 @@ class Lt:
         circuit.extend_wires(tmp)
         tmp.extend(out)
         Subtract(circuit, bit_length, one, in_0, in_1, tmp)
+
+
+class ToBool:
+    def __init__(
+        self,
+        circuit: Circuit,
+        bit_length: int,
+        in_0: List[Wire] = None,
+        out: List[Wire] = None,
+    ) -> None:
+        if in_0 is None:
+            in_0 = [Wire() for _ in range(bit_length)]
+            circuit.extend_wires(in_0)
+        else:
+            assert len(in_0) == bit_length
+        n = len(in_0)
+        if out is None:
+            if n > 1:
+                out = [Wire()]
+                circuit.extend_wires(out)
+            else:
+                out = in_0
+        self.in_0 = in_0
+        self.out = out
+
+        if n > 1:
+            t1 = ToBool(circuit, bit_length, in_0[: n // 2])
+            t2 = ToBool(circuit, bit_length, in_0[n // 2 :])
+            circuit.add_gate(Or(t1.out[0], t2.out[0], self.out[0]))

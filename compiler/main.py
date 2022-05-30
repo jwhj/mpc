@@ -65,7 +65,7 @@ class ASTCompiler:
         else:
             assert False, f'line {stmt.op.lineno}: unsupported operation {stmt.op}'
 
-    def compile_rvalue(self, stmt):
+    def compile_expr(self, stmt):
         if isinstance(stmt, ast.Name):
             assert (
                 stmt.id in self.vars
@@ -90,7 +90,7 @@ class ASTCompiler:
             bit_length = len(self.vars[targets[0].id])
         else:
             bit_length = None
-        self.vars[targets[0].id] = self.compile_rvalue(stmt.value)
+        self.vars[targets[0].id] = self.compile_expr(stmt.value)
         if bit_length is not None:
             # implicit type conversion
             tmp = len(self.vars[targets[0].id])

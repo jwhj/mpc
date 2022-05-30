@@ -1,4 +1,5 @@
 from typing import Dict, List, Union
+import sys
 import ast
 from circuit import Circuit, Wire
 from circuit_utils import int2bits, bits2int
@@ -141,6 +142,11 @@ class ASTCompiler:
                             stmt.target.id in self.vars
                         ), f'line {stmt.target.lineno}: variable {stmt.target.id} used before declaration'
                         circuit.outputs.extend(self.vars[stmt.target.id])
+                    elif stmt.annotation.id == 'Input':
+                        print(
+                            f'(warning) line {stmt.annotation.lineno}: do you mean Input[SOME_BIT_LENGTH]?',
+                            file=sys.stderr,
+                        )
             elif isinstance(stmt, ast.Assign):
                 self.compile_assign(stmt)
             else:

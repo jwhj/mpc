@@ -2,11 +2,11 @@ from typing import List, Any
 from agent import Agent
 from circuit import Circuit, Wire
 from oblivious_transfer import H, ObliviousTransferProtocol
-import queue, random
+import queue, csprng
 
 
 def gen_binary_string(len):
-    ret = ''.join([random.choice(['0', '1']) for i in range(len)])
+    ret = ''.join([csprng.choice(['0', '1']) for i in range(len)])
     return ret
 
 
@@ -51,7 +51,7 @@ class GarbledCircuitProtocol:
 
         wire_labels = []
         for i in range(m):
-            k0, p0 = gen_binary_string(self.security_param), random.randint(0, 1)
+            k0, p0 = gen_binary_string(self.security_param), csprng.randint(0, 1)
             k1, p1 = gen_binary_string(self.security_param), 1 - p0
             wire_labels.append([k0 + int2str(p0), k1 + int2str(p1)])
 

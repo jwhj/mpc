@@ -64,6 +64,19 @@ class ASTCompiler:
         else:
             assert False, f'line {stmt.op.lineno}: unsupported operation {stmt.op}'
 
+    def compile_rvalue(self, stmt):
+        if isinstance(stmt, ast.Name):
+            assert (
+                stmt.id in self.vars
+            ), f'line {stmt.lineno}: variable {stmt.id} used before declaration'
+            return self.vars[stmt.id]
+        elif isinstance(stmt, ast.Constant):
+            return self.compile_constant(stmt)
+        elif isinstance(stmt, ast.BinOp) or isinstance(stmt, ast.Compare):
+            return self.compile_bin_op(stmt)
+        else:
+            assert False, f'line {stmt.lineno}: unsupported value {stmt}'
+
     def compile_assign(self, stmt: Union[ast.Assign, ast.AnnAssign]):
         if isinstance(stmt, ast.Assign):
             assert len(stmt.targets) == 1 and isinstance(
@@ -76,17 +89,7 @@ class ASTCompiler:
             bit_length = len(self.vars[targets[0].id])
         else:
             bit_length = None
-        if isinstance(stmt.value, ast.Name):
-            assert (
-                stmt.value.id in self.vars
-            ), f'line {stmt.value.lineno}: variable {stmt.value.id} used before declaration'
-            self.vars[targets[0].id] = self.vars[stmt.value.id]
-        elif isinstance(stmt.value, ast.Constant):
-            self.vars[targets[0].id] = self.compile_constant(stmt.value)
-        elif isinstance(stmt.value, ast.BinOp) or isinstance(stmt.value, ast.Compare):
-            self.vars[targets[0].id] = self.compile_bin_op(stmt.value)
-        else:
-            assert False, f'line {stmt.lineno}: unsupported value {stmt.value}'
+        self.vars[targets[0].id] = self.compile_rvalue(stmt.value)
         if bit_length is not None:
             # implicit type conversion
             tmp = len(self.vars[targets[0].id])

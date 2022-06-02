@@ -1,6 +1,7 @@
 from typing import List, Any
 from agent import Agent
 from circuit import Circuit, Wire
+from circuit_utils.gates import Xor
 from oblivious_transfer import H, ObliviousTransferProtocol
 import queue, csprng
 
@@ -30,7 +31,15 @@ class GarbledCircuitProtocol:
     OT: ObliviousTransferProtocol
 
     def __init__(
-        self, circuit, n_Alice_bits, n_Bob_bits, alice_id, bob_id, security_param=128
+        self,
+        circuit,
+        n_Alice_bits,
+        n_Bob_bits,
+        alice_id,
+        bob_id,
+        security_param=128,
+        enable_GRR=True,
+        enable_freeXOR=True,
     ) -> None:
         self.circuit = circuit
         self.n_Alice_bits = n_Alice_bits
@@ -39,6 +48,8 @@ class GarbledCircuitProtocol:
         self.alice_id, self.bob_id = alice_id, bob_id
         self.OT.alice_id, self.OT.bob_id = alice_id, bob_id
         self.security_param = security_param
+        self.enable_GRR = enable_GRR
+        self.enable_freeXOR = enable_freeXOR
 
     def alice(
         self,
@@ -49,10 +60,18 @@ class GarbledCircuitProtocol:
         n = len(self.circuit.gates)
         m = len(self.circuit.wires)
 
+        if self.enable_freeXOR:
+            Delta = gen_binary_string(self.security_param)
         wire_labels = []
         for i in range(m):
             k0, p0 = gen_binary_string(self.security_param), csprng.randint(0, 1)
-            k1, p1 = gen_binary_string(self.security_param), 1 - p0
+            if self.enable_freeXOR:
+                k1, p1 = (
+                    int2str(str2int(k0) ^ str2int(Delta), self.security_param),
+                    1 - p0,
+                )
+            else:
+                k1, p1 = gen_binary_string(self.security_param), 1 - p0
             wire_labels.append([k0 + int2str(p0), k1 + int2str(p1)])
 
         garbled_tables_for_gates = []
@@ -61,25 +80,86 @@ class GarbledCircuitProtocol:
             assert len(gate.inputs) == 2
             w_a, w_b = gate.inputs
             w_c = gate.output
-            table_e = [''] * 4
-            for v_a, v_b in [(0, 0), (0, 1), (1, 0), (1, 1)]:
+
+            if self.enable_freeXOR and isinstance(gate, Xor):
                 k_a, p_a = (
-                    wire_labels[w_a.index][v_a][:-1],
-                    wire_labels[w_a.index][v_a][-1],
+                    wire_labels[w_a.index][0][:-1],
+                    wire_labels[w_a.index][0][-1],
                 )
 
                 k_b, p_b = (
-                    wire_labels[w_b.index][v_b][:-1],
-                    wire_labels[w_b.index][v_b][-1],
+                    wire_labels[w_b.index][0][:-1],
+                    wire_labels[w_b.index][0][-1],
                 )
-
-                e = int2str(
-                    H(k_a + k_b + int2str(gate.index))
-                    ^ str2int(wire_labels[w_c.index][gate.evaluate([v_a, v_b])])
+                wire_labels[w_c.index][0] = int2str(
+                    str2int(k_a + p_a) ^ str2int(k_b + p_b), self.security_param + 1
                 )
-                table_e[str2int(p_a + p_b)] = e
+                wire_labels[w_c.index][1] = int2str(
+                    str2int(k_a) ^ str2int(k_b) ^ str2int(Delta), self.security_param
+                ) + int2str(str2int(p_a) ^ str2int(p_b) ^ 1)
+                garbled_tables_for_gates.append(None)
+            elif self.enable_GRR:
+                for v_a, v_b in [(0, 0), (0, 1), (1, 0), (1, 1)]:
+                    k_a, p_a = (
+                        wire_labels[w_a.index][v_a][:-1],
+                        wire_labels[w_a.index][v_a][-1],
+                    )
 
-            garbled_tables_for_gates.append(table_e)
+                    k_b, p_b = (
+                        wire_labels[w_b.index][v_b][:-1],
+                        wire_labels[w_b.index][v_b][-1],
+                    )
+                    if p_a == '1' and p_b == '1':
+                        ret = gate.evaluate([v_a, v_b])
+                        wire_labels[w_c.index][ret] = int2str(
+                            H(k_a + k_b + int2str(gate.index)), self.security_param + 1
+                        )
+                        wire_labels[w_c.index][ret ^ 1] = int2str(
+                            str2int(wire_labels[w_c.index][ret][:-1]) ^ str2int(Delta),
+                            self.security_param,
+                        ) + int2str(str2int(wire_labels[w_c.index][ret][-1]) ^ 1)
+                        break
+
+                table_e = [''] * 4
+                for v_a, v_b in [(0, 0), (0, 1), (1, 0), (1, 1)]:
+                    k_a, p_a = (
+                        wire_labels[w_a.index][v_a][:-1],
+                        wire_labels[w_a.index][v_a][-1],
+                    )
+
+                    k_b, p_b = (
+                        wire_labels[w_b.index][v_b][:-1],
+                        wire_labels[w_b.index][v_b][-1],
+                    )
+
+                    e = int2str(
+                        H(k_a + k_b + int2str(gate.index))
+                        ^ str2int(wire_labels[w_c.index][gate.evaluate([v_a, v_b])]),
+                    )
+                    table_e[str2int(p_a + p_b)] = e
+                    if p_a == '1' and p_b == '1':
+                        assert str2int(e) == 0
+                garbled_tables_for_gates.append(table_e[:-1])
+
+            else:
+                table_e = [''] * 4
+                for v_a, v_b in [(0, 0), (0, 1), (1, 0), (1, 1)]:
+                    k_a, p_a = (
+                        wire_labels[w_a.index][v_a][:-1],
+                        wire_labels[w_a.index][v_a][-1],
+                    )
+
+                    k_b, p_b = (
+                        wire_labels[w_b.index][v_b][:-1],
+                        wire_labels[w_b.index][v_b][-1],
+                    )
+
+                    e = int2str(
+                        H(k_a + k_b + int2str(gate.index))
+                        ^ str2int(wire_labels[w_c.index][gate.evaluate([v_a, v_b])])
+                    )
+                    table_e[str2int(p_a + p_b)] = e
+                garbled_tables_for_gates.append(table_e)
 
         garbled_tables_for_outputs = []
         for output_wire in self.circuit.outputs:
@@ -123,7 +203,10 @@ class GarbledCircuitProtocol:
         _, garbled_tables_for_gates = agent.receiver.receive()
         _, garbled_tables_for_outputs = agent.receiver.receive()
         _, inputs_labels_A = agent.receiver.receive()
-
+        if self.enable_GRR:
+            for table_e in garbled_tables_for_gates:
+                if table_e is not None:
+                    table_e.append(''.join(['0'] * self.security_param))
         inputs_labels_B = []
         for i in range(self.n_Bob_bits):
             wire = self.circuit.inputs[self.n_Alice_bits + i]
@@ -161,15 +244,23 @@ class GarbledCircuitProtocol:
                         k_a, p_a = wire_ret[w_a.index][:-1], wire_ret[w_a.index][-1]
                         k_b, p_b = wire_ret[w_b.index][:-1], wire_ret[w_b.index][-1]
 
-                        wire_ret[w_c.index] = int2str(
-                            H(k_a + k_b + int2str(out_gate.index))
-                            ^ str2int(
-                                garbled_tables_for_gates[out_gate.index][
-                                    str2int(p_a + p_b)
-                                ]
-                            ),
-                            self.security_param + 1,
-                        )
+                        if self.enable_freeXOR and isinstance(out_gate, Xor):
+                            wire_ret[w_c.index] = int2str(
+                                str2int(wire_ret[w_a.index])
+                                ^ str2int(wire_ret[w_b.index]),
+                                self.security_param + 1,
+                            )
+                        else:
+
+                            wire_ret[w_c.index] = int2str(
+                                H(k_a + k_b + int2str(out_gate.index))
+                                ^ str2int(
+                                    garbled_tables_for_gates[out_gate.index][
+                                        str2int(p_a + p_b)
+                                    ]
+                                ),
+                                self.security_param + 1,
+                            )
                         q.put(w_c)
 
         # for output_wire in self.circuit.outputs:

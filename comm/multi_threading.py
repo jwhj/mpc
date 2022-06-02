@@ -1,5 +1,6 @@
 from typing import Dict, Any
 from queue import Queue
+import copy
 from .main import Sender, Receiver
 
 queues: Dict[Any, Queue] = {}
@@ -11,7 +12,7 @@ class SenderThread(Sender):
 
     def send(self, id, msg):
         assert id in queues, f'agent with id {id} not found'
-        queues[id].put((self.id, msg))
+        queues[id].put((self.id, copy.deepcopy(msg)))
 
 
 class ReceiverThread(Receiver):

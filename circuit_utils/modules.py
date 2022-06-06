@@ -249,6 +249,39 @@ class Lt:
         Subtract(circuit, bit_length, one, in_0, in_1, tmp)
 
 
+class Le:
+    def __init__(
+        self,
+        circuit: Circuit,
+        bit_length: int,
+        one: Wire,
+        in_0: List[Wire] = None,
+        in_1: List[Wire] = None,
+        out: List[Wire] = None,
+    ) -> None:
+        if in_0 is None:
+            in_0 = [Wire() for _ in range(bit_length)]
+            circuit.extend_wires(in_0)
+        else:
+            assert len(in_0) == bit_length
+        if in_1 is None:
+            in_1 = [Wire() for _ in range(bit_length)]
+            circuit.extend_wires(in_1)
+        else:
+            assert len(in_1) == bit_length
+        if out is None:
+            out = [Wire()]
+            circuit.add_wire(out[0])
+        else:
+            assert len(out) == bit_length
+        self.in_0 = in_0
+        self.in_1 = in_1
+        self.out = out
+
+        lt = Lt(circuit, bit_length, one, in_1, in_0)
+        circuit.add_gate(Not(lt.out[0], out[0]))
+
+
 class ToBool:
     def __init__(
         self,

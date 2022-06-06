@@ -3,7 +3,7 @@ import sys
 import ast
 from circuit import Circuit, Wire
 from circuit_utils import int2bits, bits2int
-from circuit_utils.modules import Add, Subtract, Lt, ToBool, Select
+from circuit_utils.modules import Add, Subtract, Lt, Le, ToBool, Select
 
 
 class ASTCompiler:
@@ -33,7 +33,7 @@ class ASTCompiler:
         if isinstance(stmt, ast.Compare):
             assert len(stmt.ops) == 1
             stmt.right = stmt.comparators[0]
-            stmt.op = ast.Lt()
+            stmt.op = stmt.ops[0]
         operands: List[List[Wire]] = []
         for expr in [stmt.left, stmt.right]:
             if isinstance(expr, ast.Constant):
@@ -62,6 +62,9 @@ class ASTCompiler:
         elif isinstance(stmt.op, ast.Lt):
             lt = Lt(self.circuit, bit_length, self.one, operands[0], operands[1])
             return lt.out
+        elif isinstance(stmt.op, ast.LtE):
+            le = Le(self.circuit, bit_length, self.one, operands[0], operands[1])
+            return le.out
         else:
             assert False, f'line {stmt.op.lineno}: unsupported operation {stmt.op}'
 

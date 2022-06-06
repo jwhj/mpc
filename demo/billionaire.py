@@ -33,6 +33,10 @@ def main():
                 alice_asset = random.randint(0, (1 << (bit_length - 1)) - 1)
                 if i:
                     bob_asset = random.randint(0, (1 << (bit_length - 1)) - 1)
+                    if (not flag and alice_asset > bob_asset) or (
+                        flag and alice_asset < bob_asset
+                    ):
+                        alice_asset, bob_asset = bob_asset, alice_asset
                 else:
                     bob_asset = alice_asset
                 print(

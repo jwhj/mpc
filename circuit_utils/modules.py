@@ -282,6 +282,40 @@ class Le:
         circuit.add_gate(Not(lt.out[0], out[0]))
 
 
+class Eq:
+    def __init__(
+        self,
+        circuit: Circuit,
+        bit_length: int,
+        one: Wire,
+        in_0: List[Wire] = None,
+        in_1: List[Wire] = None,
+        out: List[Wire] = None,
+    ) -> None:
+        if in_0 is None:
+            in_0 = [Wire() for _ in range(bit_length)]
+            circuit.extend_wires(in_0)
+        else:
+            assert len(in_0) == bit_length
+        if in_1 is None:
+            in_1 = [Wire() for _ in range(bit_length)]
+            circuit.extend_wires(in_1)
+        else:
+            assert len(in_1) == bit_length
+        if out is None:
+            out = [Wire()]
+            circuit.add_wire(out[0])
+        else:
+            assert len(out) == bit_length
+        self.in_0 = in_0
+        self.in_1 = in_1
+        self.out = out
+
+        subtract = Subtract(circuit, bit_length, one, in_0, in_1)
+        to_bool = ToBool(circuit, bit_length, subtract.out)
+        circuit.add_gate(Not(to_bool.out[0], out[0]))
+
+
 class ToBool:
     def __init__(
         self,
@@ -306,6 +340,6 @@ class ToBool:
         self.out = out
 
         if n > 1:
-            t1 = ToBool(circuit, bit_length, in_0[: n // 2])
-            t2 = ToBool(circuit, bit_length, in_0[n // 2 :])
+            t1 = ToBool(circuit, n // 2, in_0[: n // 2])
+            t2 = ToBool(circuit, n - n // 2, in_0[n // 2 :])
             circuit.add_gate(Or(t1.out[0], t2.out[0], self.out[0]))

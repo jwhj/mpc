@@ -3,7 +3,7 @@ import sys
 import ast
 from circuit import Circuit, Wire
 from circuit_utils import int2bits, bits2int
-from circuit_utils.modules import Add, Subtract, Lt, Le, ToBool, Select
+from circuit_utils.modules import Add, Subtract, Lt, Le, Eq, ToBool, Select
 
 
 class ASTCompiler:
@@ -65,6 +65,9 @@ class ASTCompiler:
         elif isinstance(stmt.op, ast.LtE):
             le = Le(self.circuit, bit_length, self.one, operands[0], operands[1])
             return le.out
+        elif isinstance(stmt.op, ast.Eq):
+            eq = Eq(self.circuit, bit_length, self.one, operands[0], operands[1])
+            return eq.out
         else:
             assert False, f'line {stmt.op.lineno}: unsupported operation {stmt.op}'
 

@@ -28,22 +28,25 @@ def main():
     Bob.receiver = ReceiverThread(Bob.id)
 
     with ThreadPoolExecutor(max_workers=2) as executor:
-        alice_asset = random.randint(0, (1 << (bit_length - 1)) - 1)
-        if random.randint(0, 1):
-            bob_asset = random.randint(0, (1 << (bit_length - 1)) - 1)
-        else:
-            bob_asset = alice_asset
-        flag = random.randint(0, 1)
-        print(
-            'Alice: {}\n  Bob: {}\n Type: {}'.format(
-                alice_asset, bob_asset, 'Le' if flag else 'Lt'
-            )
-        )
-        a = executor.submit(
-            protocol.alice, Alice, [0, 1] + int2bits(alice_asset, bit_length) + [flag]
-        )
-        b = executor.submit(protocol.bob, Bob, int2bits(bob_asset, bit_length))
-        print(b.result())
+        for i in range(2):
+            for flag in range(2):
+                alice_asset = random.randint(0, (1 << (bit_length - 1)) - 1)
+                if i:
+                    bob_asset = random.randint(0, (1 << (bit_length - 1)) - 1)
+                else:
+                    bob_asset = alice_asset
+                print(
+                    'Alice: {}\n  Bob: {}\n Flag: {}'.format(
+                        alice_asset, bob_asset, flag
+                    )
+                )
+                a = executor.submit(
+                    protocol.alice,
+                    Alice,
+                    [0, 1] + int2bits(alice_asset, bit_length) + [flag],
+                )
+                b = executor.submit(protocol.bob, Bob, int2bits(bob_asset, bit_length))
+                print(b.result())
 
 
 if __name__ == '__main__':

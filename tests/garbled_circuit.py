@@ -1,4 +1,6 @@
 import unittest
+import time
+import sys
 import random
 import ast
 import csprng
@@ -93,6 +95,26 @@ class GCTest(unittest.TestCase):
             b = executor.submit(protocol.bob, Bob, int2bits(y, bit_length))
             result = b.result()
             assert bool(result[0]) == (x < y), f'\n{result}\n{x}\n{y}'
+
+    def test_large_scale(self):
+        bit_length = 1024
+        with open('tests/demos/a+b_1.py', 'r') as f:
+            code = f.read()
+        compiler = ASTCompiler()
+        circuit = compiler.compile(ast.parse(code))
+
+        protocol = GarbledCircuitProtocol(circuit, bit_length + 2, bit_length, 0, 1)
+        Alice, Bob = self.setup_agents(protocol)
+
+        executor = ThreadPoolExecutor(max_workers=2)
+        x = random.randint(0, (1 << (bit_length - 1)) - 1)
+        y = random.randint(0, (1 << (bit_length - 1)) - 1)
+        t1 = time.time()
+        a = executor.submit(protocol.alice, Alice, [0, 1] + int2bits(x, bit_length))
+        b = executor.submit(protocol.bob, Bob, int2bits(y, bit_length))
+        result = b.result()
+        print(time.time() - t1, file=sys.stderr)
+        print(bits2int(result), file=sys.stderr)
 
 
 if __name__ == '__main__':
